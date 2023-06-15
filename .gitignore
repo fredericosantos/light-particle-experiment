@@ -1,0 +1,13 @@
+plotly_graphs
+Videos
+Screenshots
+Research Papers
+Images
+Gravity_Simulator
+drawings
+animations
+.vscode
+*.gdoc
+*.prof
+*.gsheet
+__pycache__

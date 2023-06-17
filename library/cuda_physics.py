@@ -12,8 +12,10 @@ from copy import deepcopy
 
 template = "plotly_white"
 
+
 def time_now():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 # # 2 slits
 # edges_slits = [[-25, -5], [5, 25]]  # two slits
@@ -26,13 +28,16 @@ def time_now():
 edges_slits = [[-40, 0]]  # 1 slit
 # edges_slits = [[-10, 10]]  # 1 slit
 multiplier = 1  # was 10
-barrier_points = [[-i / multiplier, i / multiplier] for i in range(int(10 * multiplier), int(20 * multiplier))]
+barrier_points = [
+    [-i / multiplier, i / multiplier]
+    for i in range(int(10 * multiplier), int(20 * multiplier))
+]
 barrier_points = [[-35, 35]]
 # barrier_points = [[-10, 10]]
 o_x = t.tensor(barrier_points).reshape(1, -1).squeeze()
 
 
-device = t.device("mps")
+device = t.device("cuda")
 
 # # edge diffraction
 # edges_slits = [[-50, 10]] # 1 slit
@@ -40,12 +45,12 @@ device = t.device("mps")
 # o_x = t.tensor([10])
 
 n_slits = len(edges_slits)
-n_particles = 100  # <3 3080Ti
+n_particles = 20000  # <3 3080Ti
 barrier_y = 0
 dt = 1
 v_y = 3  # FIX
 x = 50
-y = 30  # 10000
+y = 3000  # 10000
 type_trig = "sin"
 # G = -0.6626  # why is this negative?
 G = 2
@@ -81,19 +86,19 @@ o_xy = t.stack((o_x, o_y), 1).to(device)
 
 # Stupid work around, code is becoming cluttered
 dist = t.Tensor().to(device)
-hist = t.histc(trail_xy[0][:, 0].to('cpu'), bins=n_bins, min=-x, max=x)
+hist = t.histc(trail_xy[0][:, 0].to("cpu"), bins=n_bins, min=-x, max=x)
 dist = t.cat((dist, hist.unsqueeze(0).to(device)), 0)
 
 t_ = 0
 for i in tqdm(range(y)):
-    if i <= gravity_threshold:  
+    if i <= gravity_threshold:
         dt_ = t.ones_like(p_y).unsqueeze(1).to(device) * dt
         a_xy = t.zeros_like(p_xy).to(device)
         for o in o_xy:
             d_xy = p_xy - o
-            r = t.sqrt(t.sum(d_xy ** 2, axis=1))
-            r_wavelength = r ** inner_power * wavelength
-            F = G * mass / r ** 2
+            r = t.sqrt(t.sum(d_xy**2, axis=1))
+            r_wavelength = r**inner_power * wavelength
+            F = G * mass / r**2
             if type_trig == "sin":
                 F *= t.sin(r_wavelength - v_y * t_ * moving_wave) ** power
             elif type_trig == "cos":
@@ -105,21 +110,21 @@ for i in tqdm(range(y)):
             a_xy += F.unsqueeze(1) * d_xy / t.stack([r, r], axis=1)
         v_xy += a_xy * dt_
         # calculate the velocity of each particle
-        v = t.sqrt(t.sum(v_xy ** 2, axis=1))
-        # clip the velocity to the max velocity which is v_y 
+        v = t.sqrt(t.sum(v_xy**2, axis=1))
+        # clip the velocity to the max velocity which is v_y
         v = t.clip(v, 0, v_y)
         # normalize the velocity vector
         v_xy = v_xy / t.stack([v, v], axis=1)
         # multiply the velocity vector by the max velocity
         v_xy *= v_y
-    
+
         dt_ = (1 / v_xy)[:, 1].unsqueeze(1)
         t.abs_(dt_)
     p_xy += v_xy * dt_
     if round_x > 0:
-        p_xy = p_xy.to('cpu').round(decimals=round_x).to(device)
+        p_xy = p_xy.to("cpu").round(decimals=round_x).to(device)
     trail_xy = t.cat((trail_xy, p_xy.unsqueeze(0)), 0)
-    hist = t.histc(trail_xy[i][:, 0].to('cpu'), bins=n_bins, min=-x, max=x).to(device)
+    hist = t.histc(trail_xy[i][:, 0].to("cpu"), bins=n_bins, min=-x, max=x).to(device)
     dist = t.cat((dist, hist.unsqueeze(0)), 0)
     t_ += dt
 

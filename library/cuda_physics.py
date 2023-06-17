@@ -1,11 +1,11 @@
 from plots import plot_heatmap, plot_surface
-import numpy as np
 import pandas as pd
 import torch as t
-import plotly.graph_objects as go
-import plotly.express as px
-import plotly.io as pio
 import time, datetime
+
+# profile the code with cProfile
+import cProfile
+import pstats
 
 from tqdm import tqdm
 from copy import deepcopy
@@ -31,18 +31,21 @@ barrier_points = [[-35, 35]]
 # barrier_points = [[-10, 10]]
 o_x = t.tensor(barrier_points).reshape(1, -1).squeeze()
 
+
+device = t.device("mps")
+
 # # edge diffraction
 # edges_slits = [[-50, 10]] # 1 slit
 # barrier_points = []
 # o_x = t.tensor([10])
 
 n_slits = len(edges_slits)
-n_particles = 10000  # <3 3080Ti
+n_particles = 100  # <3 3080Ti
 barrier_y = 0
 dt = 1
 v_y = 3  # FIX
 x = 50
-y = 3000  # 10000
+y = 30  # 10000
 type_trig = "sin"
 # G = -0.6626  # why is this negative?
 G = 2
@@ -52,9 +55,9 @@ power = 2
 inner_power = 2
 round_x = 5
 n_bins = 200  # always odd numbers
-plot_3d = True
-plot_z_distribution = True
-plot_density = True
+PLOT_3D = True
+PLOT_Z_DISTRIBUTION = True
+PLOT_DENSITY = True
 normalize = True
 moving_wave = False
 gravity_threshold = 500
@@ -66,26 +69,26 @@ for slit in edges_slits:
     # remove the particles that would be superpositioned with edges
     # p_x = p_x[1:-1]
 p_y = t.zeros_like(p_x)
-p_xy = t.stack((p_x, p_y), 1).cuda()
+p_xy = t.stack((p_x, p_y), 1).to(device)
 
 # Let's try to keep the trail on the cpu
 trail_xy = t.clone(p_xy.unsqueeze(0))
-v_xy = t.zeros_like(p_xy).cuda() + t.tensor((0, v_y)).cuda()
+v_xy = t.zeros_like(p_xy).to(device) + t.tensor((0, v_y)).to(device)
 
-p_mass = t.ones_like(p_y).cuda()
+p_mass = t.ones_like(p_y).to(device)
 o_y = t.zeros_like(o_x) + barrier_y
-o_xy = t.stack((o_x, o_y), 1).cuda()
+o_xy = t.stack((o_x, o_y), 1).to(device)
 
 # Stupid work around, code is becoming cluttered
-dist = t.Tensor().cuda()
-hist = t.histc(trail_xy[0][:, 0], bins=n_bins, min=-x, max=x).cuda()
-dist = t.cat((dist, hist.unsqueeze(0)), 0)
+dist = t.Tensor().to(device)
+hist = t.histc(trail_xy[0][:, 0].to('cpu'), bins=n_bins, min=-x, max=x)
+dist = t.cat((dist, hist.unsqueeze(0).to(device)), 0)
 
 t_ = 0
 for i in tqdm(range(y)):
     if i <= gravity_threshold:  
-        dt_ = t.ones_like(p_y).unsqueeze(1).cuda() * dt
-        a_xy = t.zeros_like(p_xy).cuda()
+        dt_ = t.ones_like(p_y).unsqueeze(1).to(device) * dt
+        a_xy = t.zeros_like(p_xy).to(device)
         for o in o_xy:
             d_xy = p_xy - o
             r = t.sqrt(t.sum(d_xy ** 2, axis=1))
@@ -114,9 +117,9 @@ for i in tqdm(range(y)):
         t.abs_(dt_)
     p_xy += v_xy * dt_
     if round_x > 0:
-        p_xy = p_xy.round(decimals=round_x)
+        p_xy = p_xy.to('cpu').round(decimals=round_x).to(device)
     trail_xy = t.cat((trail_xy, p_xy.unsqueeze(0)), 0)
-    hist = t.histc(trail_xy[i][:, 0], bins=n_bins, min=-x, max=x).cuda()
+    hist = t.histc(trail_xy[i][:, 0].to('cpu'), bins=n_bins, min=-x, max=x).to(device)
     dist = t.cat((dist, hist.unsqueeze(0)), 0)
     t_ += dt
 
@@ -159,11 +162,11 @@ params = dict(
     normalize=normalize,
     multiplier=multiplier,
 )
-if plot_3d:
+if PLOT_3D:
     print("Creating surface plot")
     plot_surface(dist, o_x, o_y, template, params)
 
-if plot_z_distribution:
+if PLOT_Z_DISTRIBUTION:
     print("Creating heatmap plot")
     plot_heatmap(dist, o_x, o_y, template, params)
 

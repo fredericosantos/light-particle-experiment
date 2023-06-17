@@ -5,7 +5,7 @@ import datetime
 import torch as t
 
 
-def plot_surface(grid_pt, o_x, o_y, template, params):
+def plot_surface(grid_pt, o_x, o_y, template, params, show=True):
     fig = go.Figure()
     fig.add_trace(
         go.Surface(
@@ -85,6 +85,8 @@ def plot_surface(grid_pt, o_x, o_y, template, params):
     fig.update_layout(scene_aspectratio=dict(x=1, y=4, z=1))
     fig.write_html(f"plotly_graphs/simulator/surface_research.html")
     fig.write_html(f"plotly_graphs/simulator/surface_{datetime.datetime.now()}.html")
+    if show:
+        fig.show(renderer="browser")
 
 
 def plot_heatmap(grid_pt, o_x, o_y, template, params):

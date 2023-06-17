@@ -11,3 +11,4 @@ animations
 *.prof
 *.gsheet
 __pycache__
+.DS_Store

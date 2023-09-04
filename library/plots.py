@@ -84,12 +84,12 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True):
     fig.update_layout(scene_aspectmode="manual")
     fig.update_layout(scene_aspectratio=dict(x=1, y=4, z=1))
     fig.write_html(f"plotly_graphs/simulator/surface_research.html")
-    fig.write_html(f"plotly_graphs/simulator/surface_{datetime.datetime.now()}.html")
+    # fig.write_html(f"plotly_graphs/simulator/surface_{datetime.datetime.now()}.html")
     if show:
         fig.show(renderer="browser")
 
 
-def plot_heatmap(grid_pt, o_x, o_y, template, params):
+def plot_heatmap(grid_pt, o_x, o_y, template, params, show=True):
     fig = go.Figure()
     fig.add_trace(
         go.Heatmap(
@@ -110,5 +110,7 @@ def plot_heatmap(grid_pt, o_x, o_y, template, params):
         font=dict(size=8),
         margin=dict(t=50, b=0, l=0, r=0),
     )
-    fig.write_html(f"plotly_graphs/simulator/heatmap_research.html")
-    fig.write_html(f"plotly_graphs/simulator/heatmap_{datetime.datetime.now()}.html")
+    fig.write_html("plotly_graphs/simulator/heatmap_research.html")
+    # fig.write_html(f"plotly_graphs/simulator/heatmap_{datetime.datetime.now()}.html")
+    if show:
+        fig.show(renderer="browser")

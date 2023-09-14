@@ -5,7 +5,7 @@ import datetime
 import torch as t
 
 
-def plot_surface(grid_pt, o_x, o_y, template, params, show=True):
+def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
     fig = go.Figure()
     fig.add_trace(
         go.Surface(
@@ -51,6 +51,23 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True):
             ),
         )
     )
+    if z_values is not None:
+        # Create the x and y coordinates for the z_values surface
+        x_coords = t.linspace(o_x.min().item(), o_x.max().item(), z_values.shape[1])
+        y_coords = t.linspace(o_y.min().item(), o_y.max().item(), z_values.shape[0])
+
+        fig.add_trace(
+            go.Surface(
+                x=x_coords.cpu().numpy(),
+                y=y_coords.cpu().numpy(),
+                z=z_values.cpu().numpy(),
+                showscale=False,
+                hoverinfo="z",
+                name="gravitational_force",
+                colorscale="Viridis",
+                opacity=0.5,
+            )
+        )
     # TODO: add edge traces again
     # fig.add_trace(
     #     go.Scatter3d(
@@ -82,7 +99,12 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True):
     )
     # fig.update_layout(scene_aspectmode="data")
     fig.update_layout(scene_aspectmode="manual")
-    fig.update_layout(scene_aspectratio=dict(x=1, y=4, z=1))
+    fig.update_layout(scene_aspectratio=dict(x=5, y=3, z=1))
+    # set camera to be looking from above, y axis is up and x is horizontal
+    fig.update_layout(
+        scene_camera=dict(eye=dict(x=0, y=0, z=4), up=dict(x=0, y=1, z=0))
+    )
+
     fig.write_html(f"plotly_graphs/simulator/surface_research.html")
     # fig.write_html(f"plotly_graphs/simulator/surface_{datetime.datetime.now()}.html")
     if show:

@@ -99,7 +99,8 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
     )
     # fig.update_layout(scene_aspectmode="data")
     fig.update_layout(scene_aspectmode="manual")
-    fig.update_layout(scene_aspectratio=dict(x=5, y=3, z=1))
+    # get x/y ratio from data
+    fig.update_layout(scene_aspectratio=dict(x=1, y=3, z=1))
     # set camera to be looking from above, y axis is up and x is horizontal
     fig.update_layout(
         scene_camera=dict(eye=dict(x=0, y=0, z=4), up=dict(x=0, y=1, z=0))

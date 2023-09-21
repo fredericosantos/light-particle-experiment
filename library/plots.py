@@ -103,7 +103,7 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
     fig.update_layout(scene_aspectratio=dict(x=1, y=3, z=1))
     # set camera to be looking from above, y axis is up and x is horizontal
     fig.update_layout(
-        scene_camera=dict(eye=dict(x=0, y=0, z=4), up=dict(x=0, y=1, z=0))
+        scene_camera=dict(eye=dict(x=0, y=-4, z=4), up=dict(x=0, y=1, z=0))
     )
 
     fig.write_html(f"plotly_graphs/simulator/surface_research.html")
@@ -112,7 +112,7 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
         fig.show(renderer="browser")
 
 
-def plot_heatmap(grid_pt, o_x, o_y, template, params, show=True):
+def plot_heatmap(grid_pt, template="plotly_dark", params={}, show=True):
     fig = go.Figure()
     fig.add_trace(
         go.Heatmap(
@@ -121,7 +121,7 @@ def plot_heatmap(grid_pt, o_x, o_y, template, params, show=True):
             y=grid_pt.index.values,
             reversescale=True,
             # colorscale=["black", "red"],
-            colorscale="Turbo",
+            colorscale="Inferno_r",
         )
     )
     # fig.add_trace(

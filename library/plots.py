@@ -16,7 +16,7 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
             hoverinfo=None,
             name="diffraction",
             reversescale=True,
-            colorscale="Turbo",
+            colorscale="Inferno_r",
             # colorscale=["black", "red"],
             lighting=dict(diffuse=0.0, specular=0.0, fresnel=0.0, roughness=0.0),
             # cmin=0,
@@ -100,7 +100,7 @@ def plot_surface(grid_pt, o_x, o_y, template, params, show=True, z_values=None):
     # fig.update_layout(scene_aspectmode="data")
     fig.update_layout(scene_aspectmode="manual")
     # get x/y ratio from data
-    fig.update_layout(scene_aspectratio=dict(x=1, y=3, z=1))
+    fig.update_layout(scene_aspectratio=dict(x=1, y=2, z=1))
     # set camera to be looking from above, y axis is up and x is horizontal
     fig.update_layout(
         scene_camera=dict(eye=dict(x=0, y=-4, z=4), up=dict(x=0, y=1, z=0))
